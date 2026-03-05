@@ -110,7 +110,8 @@ fun DetailCocktailScreen(modifier: Modifier, drinkID: String? = null) {
             }
         }
 
-        Text("glass type",
+        Text(
+            drink.value.glass,
             color = Color.White,
             fontSize = 20.sp
         )
