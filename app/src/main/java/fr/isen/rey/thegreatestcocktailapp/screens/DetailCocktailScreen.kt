@@ -51,15 +51,20 @@ fun DetailCocktailScreen(modifier: Modifier, drinkID: String? = null) {
 
     val drink = remember { mutableStateOf(DrinkModel()) }
 
-    LaunchedEffect(Unit) {
-        val call = NetworkManager.api.getRandomCocktail()
+    LaunchedEffect(drinkID) {
+        val call = if (drinkID.isNullOrBlank()) {
+            NetworkManager.api.getRandomCocktail()
+        } else {
+            NetworkManager.api.getCocktailDetail(drinkID)
+        }
+
         call.enqueue(object : Callback<Drinks> {
-            override fun onResponse(p0: Call<Drinks?>,p1: Response<Drinks?>) {
-                drink.value = p1.body()?.drinks?.first() ?: DrinkModel()
+            override fun onResponse(call: Call<Drinks>, response: Response<Drinks>) {
+                drink.value = response.body()?.drinks?.firstOrNull() ?: DrinkModel()
             }
 
-            override fun onFailure(p0: Call<Drinks?>, p1: Throwable) {
-                Log.e("error", p1.message.toString())
+            override fun onFailure(call: Call<Drinks>, t: Throwable) {
+                Log.e("error", t.message.toString())
             }
         })
     }

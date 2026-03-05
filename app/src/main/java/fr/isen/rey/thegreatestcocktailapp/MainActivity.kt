@@ -142,8 +142,8 @@ fun TopAppBar(snackbarHostState: SnackbarHostState, drinkID: String? = null) {
                         updateFavoriteList(
                             drinkID.toString(),
                             isFav.value,
-                            sharedPreferences,
-                            drinkList)
+                            sharedPreferences
+                        )
                     }
                 }
             ) {
@@ -165,14 +165,21 @@ fun getFavoriteStatusForID(drinkID: String?, list: ArrayList<String>): Boolean {
     return false
 }
 
-fun updateFavoriteList(drinkID: String,
-                       shouldBeAdded: Boolean,
-                       sharedPreferencesHelper: SharedPreferencesHelper,
-                       list: ArrayList<String>) {
+fun updateFavoriteList(
+    drinkID: String,
+    shouldBeAdded: Boolean,
+    sharedPreferencesHelper: SharedPreferencesHelper
+) {
+
+    val list = sharedPreferencesHelper.getFavoriteList()
+
     if (shouldBeAdded) {
-        list.add(drinkID)
+        if (!list.contains(drinkID)) {
+            list.add(drinkID)
+        }
     } else {
         list.remove(drinkID)
     }
+
     sharedPreferencesHelper.saveFavoriteList(list)
 }
