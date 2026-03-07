@@ -19,3 +19,12 @@ class DrinkModel(
     @SerializedName("strInstructions") val instructions: String = ""
 
 ) : Serializable
+
+class Categories(
+    val drinks: List<CategoryModel>
+) : Serializable
+
+class CategoryModel(
+    @SerializedName("strCategory")
+    val category: String = ""
+) : Serializable

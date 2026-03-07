@@ -13,4 +13,7 @@ interface ApiService {
 
     @GET("filter.php")
     fun getDrinksByCategory(@Query("c") category: String): Call<Drinks>
+
+    @GET("list.php")
+    fun getCategories(@Query("c") type: String = "list"): Call<Categories>
 }
