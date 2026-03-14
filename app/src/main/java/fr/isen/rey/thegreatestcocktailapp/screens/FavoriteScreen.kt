@@ -1,6 +1,7 @@
 package fr.isen.rey.thegreatestcocktailapp.screens
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -22,23 +23,59 @@ import androidx.compose.ui.unit.sp
 import fr.isen.rey.thegreatestcocktailapp.DetailCocktailActivity
 import fr.isen.rey.thegreatestcocktailapp.SharedPreferencesHelper
 import fr.isen.rey.thegreatestcocktailapp.network.DrinkModel
+import fr.isen.rey.thegreatestcocktailapp.network.Drinks
+import fr.isen.rey.thegreatestcocktailapp.network.NetworkManager
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun FavoriteScreen(modifier: Modifier) {
-    val sharedPreferences = SharedPreferencesHelper(LocalContext.current)
+
+    val context = LocalContext.current
+    val sharedPreferences = SharedPreferencesHelper(context)
     val favList = sharedPreferences.getFavoriteList()
 
-    LazyColumn(modifier
-        .fillMaxSize()
-        .background(brush = Brush.linearGradient(listOf(Color.Cyan, Color.Black)))
-        .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(favList) { drink ->
-            val context = LocalContext.current
+    val drinks = remember { mutableStateOf<List<DrinkModel>>(listOf()) }
+
+    LaunchedEffect(Unit) {
+
+        val tempList = mutableListOf<DrinkModel>()
+
+        favList.forEach { id ->
+
+            val call = NetworkManager.api.getCocktailDetail(id)
+
+            call.enqueue(object : Callback<Drinks> {
+
+                override fun onResponse(call: Call<Drinks>, response: Response<Drinks>) {
+                    response.body()?.drinks?.firstOrNull()?.let {
+                        tempList.add(it)
+                        drinks.value = tempList.toList()
+                    }
+                }
+
+                override fun onFailure(call: Call<Drinks>, t: Throwable) {
+                    Log.e("error", t.message.toString())
+                }
+            })
+        }
+    }
+
+    LazyColumn(
+        modifier
+            .fillMaxSize()
+            .background(brush = Brush.linearGradient(listOf(Color.Cyan, Color.Black)))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+
+        items(drinks.value) { drink ->
+
             Button(
                 onClick = {
                     val intent = Intent(context, DetailCocktailActivity::class.java)
-                    intent.putExtra("drinkID", drink)
+                    intent.putExtra("drinkID", drink.id)
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -50,7 +87,8 @@ fun FavoriteScreen(modifier: Modifier) {
                     Color.Unspecified
                 )
             ) {
-                Text(drink, fontSize = 30.sp)
+
+                Text(drink.name, fontSize = 30.sp)
             }
         }
     }
